@@ -27,5 +27,6 @@ void main()
 	int sum = foo(vector, size);
 	cout << "Sum of the vector's elements is: " << sum << endl;
 	delete[] vector;
+	vector = nullptr;
 	system("pause");
 }
