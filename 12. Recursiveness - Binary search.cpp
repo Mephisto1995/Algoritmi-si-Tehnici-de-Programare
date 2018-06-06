@@ -38,5 +38,6 @@ void main()
 		cout << "Element does not exist in vector!" << endl :
 		cout << "Element is in vector!" << endl;
 	delete[] vector;
+	vector = nullptr;
 	system("pause");
 }
