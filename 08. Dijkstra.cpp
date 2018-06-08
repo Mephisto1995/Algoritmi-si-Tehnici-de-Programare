@@ -1,98 +1,170 @@
 #include <iostream>
 #include <fstream>
-#include <vector>
-#include <queue>
-
+#pragma warning(disable:4996)
+#define INFINITY 8096
+#define FILE_NAME "Weighted Graph.txt"
+const int source = 0;
 using namespace std;
-#define INF 0x3f3f3f3f
 
-struct edge {
-	int vertice1;
-	int vertice2;
-	int cost;
-};
-struct pereche {
-	int cost;
-	int nod;
-};
-struct myComparator {
-	bool operator() (const pereche& i1, const pereche& i2) {
-		return (i1.cost > i2.cost);
+void prelucrateSize(int& size)
+{
+	fstream file;
+	file.open(FILE_NAME, ios::in);
+	if (file.is_open())
+	{
+		file >> size;
 	}
-};
+	file.close();
+}
 
-
-vector<int> dijkstra(vector<edge> edges, int source, int n) {
-	priority_queue<pereche, vector<pereche>, myComparator> pq;
-	vector<int> dist;
-	int *cost = new int[n];
-	for (int i = 0; i < n; i++) {
-		cost[i] = INF;
+void allocateMemory(int** &matrix, const int& size)
+{
+	if (matrix == nullptr)
+	{
+		matrix = new int*[size];
+		for (int i = 0; i < size; i++)
+		{
+			matrix[i] = new int[size];
+		}
 	}
-	cost[source - 1] = 0;
-	pereche sourcePair;
-	sourcePair.cost = cost[source - 1];
-	sourcePair.nod = source;
-	pq.push(sourcePair);
-	while (!pq.empty()) {
-		int node = pq.top().nod;
-		pq.pop();
-		for (int i = 0; i < edges.size(); i++) {
-			if (edges[i].vertice1 == node) {
-				if (cost[edges[i].vertice2 - 1] > cost[node - 1] + edges[i].cost) {
-					cost[edges[i].vertice2 - 1] = cost[node - 1] + edges[i].cost;
-					pereche newPair;
-					newPair.cost = cost[edges[i].vertice2 - 1];
-					newPair.nod = edges[i].vertice2;
-					pq.push(newPair);
-				}
+}
+
+void infinite(int** matrix, const int& size)
+{
+	if (matrix != nullptr)
+	{
+		for (int i = 0; i < size; i++)
+		{
+			for (int j = 0; j < size; j++)
+			{
+				matrix[i][j] == INFINITY;
 			}
 		}
 	}
-	for (int i = 0; i < n; i++) {
-		dist.push_back(cost[i]);
-	}
-	delete[] cost;
-	return dist;
 }
 
-int main() {
-	vector<edge> edges;
-	edge edge1;
-	edge1.vertice1 = 1;
-	edge1.vertice2 = 2;
-	edge1.cost = 10;
-	edges.push_back(edge1);
-	edge edge2;
-	edge2.vertice1 = 1;
-	edge2.vertice2 = 3;
-	edge2.cost = 50;
-	edges.push_back(edge2);
-	edge edge3;
-	edge3.vertice1 = 1;
-	edge3.vertice2 = 4;
-	edge3.cost = 30;
-	edges.push_back(edge3);
-	edge edge4;
-	edge4.vertice1 = 2;
-	edge4.vertice2 = 3;
-	edge4.cost = 20;
-	edges.push_back(edge4);
-	edge edge5;
-	edge5.vertice1 = 3;
-	edge5.vertice2 = 5;
-	edge5.cost = 10;
-	edges.push_back(edge5);
-	edge edge6;
-	edge6.vertice1 = 4;
-	edge6.vertice2 = 5;
-	edge6.cost = 10;
-	edges.push_back(edge6);
-	vector<int> dist;
-	dist = dijkstra(edges, 1, 5);
-	for(int i = 0; i < dist.size(); i++)
+void road2self(int** matrix, const int& size)
+{
+	if (matrix != nullptr)
 	{
-		cout << "Distanta intre nodul sursa 1 si nodul " << i + 1 << " este: " << dist[i] << endl;
+		for (int i = 0; i < size; i++)
+		{
+			matrix[i][i] = 0;
+		}
 	}
-	system("Pause");
+}
+
+void populateMatrix(int** matrix, const int& size)
+{
+	if (matrix != nullptr)
+	{
+		fstream file;
+		file.open(FILE_NAME, ios::in);
+		if (file.is_open())
+		{
+			int u, v, w;
+			file.seekg(ios::beg + 1);
+			while (!file.eof())
+			{
+				file >> u >> v >> w;
+				matrix[u][v] = w;
+				matrix[v][u] = w;
+			}
+		}
+		file.close();
+	}
+}
+
+int minDistance(int* dist, bool* setupSet, const int& size)
+{
+	int minValue = INFINITY;
+	int minIndex = -1;
+	if (dist != nullptr && setupSet != nullptr)
+	{
+		for (int i = 0; i < size; i++)
+		{
+			if (setupSet[i] == false && dist[i] <= minValue)
+			{
+				minValue = dist[i];
+				minIndex = i;
+			}
+		}
+	}
+	return minIndex;
+}
+
+void displaySolution(int* dist, const int& size, const int& source)
+{
+	if (dist != nullptr)
+	{
+		cout << "Vertex Distance from source" << source << endl;
+		for (int i = 0; i < size; i++)
+		{
+			cout << i << " to " << dist[i] << endl;
+		}
+	}
+}
+
+void dijkstra(int** matrix, const int& size, const int& source)
+{
+	if (matrix != nullptr)
+	{
+		int* dist = new int[size];
+		bool* setupSet = new bool[size];
+		for (int i = 0; i < size; i++)
+		{
+			dist[i] = INFINITY;
+			setupSet[i] = false;
+		}
+		dist[source] = 0;
+		for (int counter = 0; counter < size - 1; counter++)
+		{
+			int u = minDistance(dist, setupSet, size);
+			setupSet[u] = true;
+			for (int i = 0; i < size; i++)
+			{
+				if (setupSet[u] == false && matrix[u][i] != INFINITY &&
+					dist[u] != INFINITY && matrix[u][i] + dist[u] < dist[i])
+				{
+					dist[i] = matrix[u][i] + dist[u];
+				}
+			}
+		}
+		displaySolution(dist, size, size);
+		delete[] dist;
+		delete[] setupSet;
+		dist = nullptr;
+		setupSet = nullptr;
+	}
+}
+
+void destroyMatrix(int** matrix, const int& size)
+{
+	if (matrix != nullptr)
+	{
+		for (int i = 0; i < size; i++)
+		{
+			delete[] matrix[i];
+			matrix[i] = nullptr;
+		}
+		delete[] matrix;
+		matrix = nullptr;
+	}
+}
+
+void main()
+{
+	int** matrix = nullptr;
+	int size = -1;
+	prelucrateSize(size);
+	if (size != -1 && size > 0)
+	{
+		allocateMemory(matrix, size);
+		infinite(matrix, size);
+		road2self(matrix, size);
+		populateMatrix(matrix, size);
+		dijkstra(matrix, size, source);
+		destroyMatrix(matrix, size);
+	}
+	system("pause");
 }
