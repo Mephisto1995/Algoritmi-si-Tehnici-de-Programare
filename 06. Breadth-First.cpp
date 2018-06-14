@@ -138,6 +138,8 @@ void breadth_first(int** matrix, const int& size)
 				queue.pop();
 			}
 		}
+		delete[] visited;
+		visited = nullptr;
 	}
 }
 
